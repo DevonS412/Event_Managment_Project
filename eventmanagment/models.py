@@ -24,7 +24,7 @@ class Event(models.Model):
         ('workshop', 'Workshop'),
         ('activity', 'Student Activity'),
         ('conference', 'Conference'),
-        ('seminar', 'Seminar'),
+        ('', 'Seminar'),
         ('other', 'Other'),
     ]
     

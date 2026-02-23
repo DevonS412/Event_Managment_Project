@@ -7,4 +7,28 @@
 
 {% block content %}
   <h1>Events</h1>
+
+  <ul>
+    {% for event in events %}
+      {% if event.status == "approved" %}
+        <li>
+          <b>{{ event.title }} at {{ event.location }}</b> <br>
+          {% if event.category == "meeting" %}
+            Meeting <br>
+          {% elif event.category == "workshop" %}
+            Workshop <br>
+          {% elif event.category == "activity" %}
+            Student Activity <br>
+          {% elif event.category == "conference" %}
+            Conference <br>
+          {% elif event.category == "seminar" %}
+            Seminar <br>
+          {% elif event.category == "other" %}
+            Other <br>
+          {% endif %}
+          <i>{{ event.date }} {{ event.time }}</i>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
 {% endblock %}
