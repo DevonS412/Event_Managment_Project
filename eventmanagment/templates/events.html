@@ -12,7 +12,7 @@
     {% for event in events %}
       {% if event.status == "approved" %}
         <li>
-          <b>{{ event.title }} at {{ event.location }}</b> <br>
+          <b><a href="details/{{ event.id }}">{{ event.title }} at {{ event.location }}</a></b> <br>
           {% if event.category == "meeting" %}
             Meeting <br>
           {% elif event.category == "workshop" %}
