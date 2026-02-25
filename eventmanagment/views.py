@@ -410,9 +410,18 @@ def get_event_attendees(request, event_id):
 # ===== ORIGINAL TEMPLATE VIEWS =====
 
 def events(request):
-  template = loader.get_template('events.html')
-  return HttpResponse(template.render())
+    events = Event.objects.all().values()
+    template = loader.get_template('events.html')
+    context = {
+        'events': events,
+    }
+    return HttpResponse(template.render(context, request))
 
-def details(request):
-  template = loader.get_template('details.html')
-  return HttpResponse(template.render())
+
+def details(request, id):
+    event = Event.objects.get(id=id)
+    template = loader.get_template('details.html')
+    context = {
+        'event': event,
+    }
+    return HttpResponse(template.render(context, request))
