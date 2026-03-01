@@ -5,6 +5,8 @@ urlpatterns = [
     # Original template views
     path('events/', views.events, name='events'),
     path('events/details/<int:id>/', views.details, name='details'),
+    path('login/', views.login, name='login'),
+    path('signup/', views.signup, name='signup'),
 
     # User Authentication
     path('api/register/', views.register_user, name='register_user'),

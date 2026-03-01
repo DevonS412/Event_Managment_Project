@@ -5,8 +5,19 @@
   <title>{% block title %}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'stylesheet.css' %}">
 </head>
+
 <body>
-    
+  <nav>
+    <ul>
+      <li><a href="{% url 'events' %}">Events</a></li>
+      {% if 'user_id' in request.session %}
+        <li><a href="{% url 'logout_user' %}">Logout</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Login</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+
 {% block content %}
 {% endblock %}
 

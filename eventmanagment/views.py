@@ -14,11 +14,10 @@ from .models import User, Event, Registration
 def register_user(request):
     """Create a new user account"""
     try:
-        data = json.loads(request.body)
-        name = data.get('name')
-        email = data.get('email')
-        password = data.get('password')
-        role = data.get('role', 'student')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        role = request.POST.get('role', 'student')
         
         if not name or not email or not password:
             return JsonResponse({'error': 'Missing required fields'}, status=400)
@@ -39,9 +38,8 @@ def register_user(request):
 def login_user(request):
     """Log in a user"""
     try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        password = data.get('password')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
         
         if not email or not password:
             return JsonResponse({'error': 'Email and password required'}, status=400)
@@ -425,3 +423,11 @@ def details(request, id):
         'event': event,
     }
     return HttpResponse(template.render(context, request))
+
+def login(request):
+    template = loader.get_template('login.html')
+    return HttpResponse(template.render({}, request))
+
+def signup(request):
+    template = loader.get_template('signup.html')
+    return HttpResponse(template.render({}, request))
