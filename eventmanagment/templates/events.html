@@ -1,12 +1,24 @@
 {% extends "master.html" %}
 
 {% block title %}
+  {% if type == "All" %}
   Events
+  {% elif type == "Pending" %}
+  Pending Events
+  {% elif type == "Registered" %}
+  My Events
+  {% endif %}
 {% endblock %}
 
 
 {% block content %}
+  {% if type == "All" %}
   <h1>Events</h1>
+  {% elif type == "Pending" %}
+  <h1>Pending Events</h1>
+  {% elif type == "Registered" %}
+  <h1>My Events</h1>
+  {% endif %}
   {% if events %}
     <ul>
       {% for event in events %}

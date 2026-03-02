@@ -9,18 +9,21 @@
 <body>
   <nav>
     <ul>
-      <li><a href="{% url 'events' %}">Events</a></li>
       {% if 'user_id' in request.session %}
+        <li><a href="{% url 'events' %}">Events</a></li>
         <li><a href="{% url 'registered' %}">My Events</a></li>
-        <li><a href="{% url 'create' %}">Create Event</a></li>
-        <li><a href="{% url 'pending' %}">Pending Events</a></li>
+        {% if 'role' and role == 'staff' or role == 'admin' %}
+          <li><a href="{% url 'create' %}">Create Event</a></li>
+        {% endif %}
+        {% if 'role' and role == 'admin' %}
+          <li><a href="{% url 'pending' %}">Pending Events</a></li>
+        {% endif %}
         <li><a href="{% url 'logout_user' %}">Logout</a></li>
       {% else %}
         <li><a href="{% url 'login' %}">Login</a></li>
       {% endif %}
     </ul>
   </nav>
-
 {% block content %}
 {% endblock %}
 

@@ -26,7 +26,7 @@ def register_user(request):
             return JsonResponse({'error': 'Email already exists'}, status=400)
         
         user = User.objects.create(name=name, email=email, password=password, role=role)
-        return JsonResponse({'message': 'User created successfully', 'user_id': user.id}, status=201)
+        return redirect('login')
     
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -50,7 +50,7 @@ def login_user(request):
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
         
         request.session['user_id'] = user.id
-        return JsonResponse({'message': 'Login successful', 'user_id': user.id, 'role': user.role}, status=200)
+        return redirect('events')
     
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -62,7 +62,7 @@ def logout_user(request):
     """Log out a user"""
     if 'user_id' in request.session:
         del request.session['user_id']
-    return JsonResponse({'message': 'Logout successful'}, status=200)
+    return redirect('login')
 
 
 # ===== EVENT VIEWING =====
@@ -168,7 +168,7 @@ def create_event(request):
             status='pending'  # Events need admin approval
         )
         
-        return JsonResponse({'message': 'Event created successfully', 'event_id': event.id}, status=201)
+        return redirect('details', id=event.id)
     
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
@@ -226,7 +226,7 @@ def edit_event(request, event_id):
             event.capacity = data['capacity']
         
         event.save()
-        return JsonResponse({'message': 'Event updated successfully'}, status=200)
+        return redirect('details', id=event.id)
     
     except Event.DoesNotExist:
         return JsonResponse({'error': 'Event not found'}, status=404)
@@ -248,7 +248,7 @@ def delete_event(request, event_id):
         
         event = Event.objects.get(id=event_id)
         event.delete()
-        return JsonResponse({'message': 'Event deleted successfully'}, status=200)
+        return redirect('events')
     
     except Event.DoesNotExist:
         return JsonResponse({'error': 'Event not found'}, status=404)
@@ -273,7 +273,7 @@ def approve_event(request, event_id):
         event = Event.objects.get(id=event_id, status='pending')
         event.status = 'approved'
         event.save()
-        return JsonResponse({'message': 'Event approved'}, status=200)
+        return redirect('pending')
     
     except Event.DoesNotExist:
         return JsonResponse({'error': 'Event not found or already processed'}, status=404)
@@ -296,7 +296,7 @@ def reject_event(request, event_id):
         event = Event.objects.get(id=event_id, status='pending')
         event.status = 'rejected'
         event.save()
-        return JsonResponse({'message': 'Event rejected'}, status=200)
+        return redirect('pending')
     
     except Event.DoesNotExist:
         return JsonResponse({'error': 'Event not found or already processed'}, status=404)
@@ -347,7 +347,7 @@ def register_for_event(request, event_id):
             return JsonResponse({'error': 'Event is full'}, status=400)
         
         Registration.objects.create(user=user, event=event)
-        return JsonResponse({'message': 'Registered successfully'}, status=201)
+        return redirect('registered')
     
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
@@ -368,7 +368,7 @@ def cancel_registration(request, event_id):
         user = User.objects.get(id=user_id)
         registration = Registration.objects.get(user=user, event_id=event_id)
         registration.delete()
-        return JsonResponse({'message': 'Registration cancelled'}, status=200)
+        return redirect('registered')
     
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
@@ -440,19 +440,28 @@ def get_event_attendees(request, event_id):
 # ===== ORIGINAL TEMPLATE VIEWS =====
 
 def events(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
     events = Event.objects.filter(status='approved').values()
     template = loader.get_template('events.html')
+    user = User.objects.get(id=request.session.get('user_id'))
     context = {
         'events': events,
+        'type': 'All',
+        'role': user.role,
     }
     return HttpResponse(template.render(context, request))
 
 
 def details(request, id):
+    if 'user_id' not in request.session:
+        return redirect('login')
     event = Event.objects.get(id=id)
     template = loader.get_template('details.html')
+    user = User.objects.get(id=request.session.get('user_id'))
     context = {
         'event': event,
+        'role': user.role,
     }
     return HttpResponse(template.render(context, request))
 
@@ -465,13 +474,20 @@ def signup(request):
     return HttpResponse(template.render({}, request))
 
 def create(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
     user = User.objects.get(id=request.session.get('user_id'))
     if user.role not in ['staff', 'admin']:
         return HttpResponse("Unauthorized", status=403)
     template = loader.get_template('create.html')
-    return HttpResponse(template.render({}, request))
+    context = {
+        'role': user.role,
+    }
+    return HttpResponse(template.render(context, request))
 
 def edit(request, id):
+    if 'user_id' not in request.session:
+        return redirect('login')
     event = Event.objects.get(id=id)
     user = User.objects.get(id=request.session.get('user_id'))
     if user.role not in ['staff', 'admin']:
@@ -479,10 +495,13 @@ def edit(request, id):
     template = loader.get_template('edit.html')
     context = {
         'event': event,
+        'role': user.role,
     }
     return HttpResponse(template.render(context, request))
 
 def pending(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
     user = User.objects.get(id=request.session.get('user_id'))
     if user.role != 'admin':
         return HttpResponse("Unauthorized", status=403)
@@ -490,20 +509,28 @@ def pending(request):
     template = loader.get_template('events.html')
     context = {
         'events': events,
+        'type': 'Pending',
+        'role': user.role,
     }
     return HttpResponse(template.render(context, request))
 
 def registered(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
     user = User.objects.get(id=request.session.get('user_id'))
     registrations = Registration.objects.filter(user=user).select_related('event')
     events = [reg.event for reg in registrations]
     template = loader.get_template('events.html')
     context = {
         'events': events,
+        'type': 'Registered',
+        'role': user.role,
     }
     return HttpResponse(template.render(context, request))
 
 def attendees(request, id):
+    if 'user_id' not in request.session:
+        return redirect('login')
     user = User.objects.get(id=request.session.get('user_id'))
     event = Event.objects.get(id=id)
     if user.role != 'admin':
@@ -514,5 +541,6 @@ def attendees(request, id):
     context = {
         'attendees': attendees,
         'event': event,
+        'role': user.role,
     }
     return HttpResponse(template.render(context, request))
