@@ -7,12 +7,11 @@
 
 {% block content %}
   <h1>Events</h1>
-
-  <ul>
-    {% for event in events %}
-      {% if event.status == "approved" %}
+  {% if events %}
+    <ul>
+      {% for event in events %}
         <li>
-          <b><a href="details/{{ event.id }}">{{ event.title }} at {{ event.location }}</a></b> <br>
+          <b><a href="{% url 'details' id=event.id %}">{{ event.title }} at {{ event.location }}</a></b> <br>
           {% if event.category == "meeting" %}
             Meeting <br>
           {% elif event.category == "workshop" %}
@@ -28,7 +27,9 @@
           {% endif %}
           <i>{{ event.date }} {{ event.time }}</i>
         </li>
-      {% endif %}
-    {% endfor %}
-  </ul>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No events found.</p>
+  {% endif %}
 {% endblock %}

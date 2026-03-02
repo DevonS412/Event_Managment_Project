@@ -1,0 +1,19 @@
+{% extends "master.html" %}
+
+{% block title %}
+  Attendees for {{ event.title }}
+{% endblock %}
+
+
+{% block content %}
+  <h1>Attendees for {{ event.title }}</h1>
+  {% if attendees %}
+    <ul>
+      {% for attendee in attendees %}
+        <li>{{ attendee.name }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No attendees registered for this event.</p>
+  {% endif %}
+{% endblock %}

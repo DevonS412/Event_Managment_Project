@@ -1,0 +1,46 @@
+{% extends "master.html" %}
+
+{% block title %}
+  Edit Event
+{% endblock %}
+
+
+{% block content %}
+    <h1>Edit Event</h1>
+
+    <form method="post" action="{% url 'edit_event' event_id=event.id %}">
+    {% csrf_token %}
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" value="{{ event.title }}" required><br><br>
+
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description" value="{{ event.description }}" required><br><br>
+
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date" value="{{ event.date }}" required><br><br>
+
+    <label for="time">Time:</label>
+    <input type="time" id="time" name="time" value="{{ event.time }}" required><br><br>
+
+    <label for="location">Location:</label>
+    <input type="text" id="location" name="location" value="{{ event.location }}" required><br><br>
+
+    <label for="category">Category:</label>
+    <select id="category" name="category" required>
+        <option value="meeting">Meeting</option>
+        <option value="workshop">Workshop</option>
+        <option value="activity">Student Activity</option>
+        <option value="conference">Conference</option>
+        <option value="seminar">Seminar</option>
+        <option value="other">Other</option>
+        <script>
+            document.getElementById('category').value = "{{ event.category }}";
+        </script>
+    </select><br><br>
+
+    <label for="capacity">Capacity:</label>
+    <input type="number" id="capacity" name="capacity" value="{{ event.capacity }}" required><br><br>
+
+    <input type="submit" value="Update Event">
+    </form>
+{% endblock %}

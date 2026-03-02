@@ -4,9 +4,14 @@ from . import views
 urlpatterns = [
     # Original template views
     path('events/', views.events, name='events'),
-    path('events/details/<int:id>/', views.details, name='details'),
+    path('details/<int:id>/', views.details, name='details'),
     path('login/', views.login, name='login'),
     path('signup/', views.signup, name='signup'),
+    path('create/', views.create, name='create'),
+    path('edit/<int:id>/', views.edit, name='edit'),
+    path('pending/', views.pending, name='pending'),
+    path('registered/', views.registered, name='registered'),
+    path('attendees/<int:id>/', views.attendees, name='attendees'),
 
     # User Authentication
     path('api/register/', views.register_user, name='register_user'),

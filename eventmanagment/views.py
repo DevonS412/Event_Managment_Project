@@ -134,10 +134,26 @@ def create_event(request):
         if user.role not in ['staff', 'admin']:
             return JsonResponse({'error': 'Only staff and admins can create events'}, status=403)
         
-        data = json.loads(request.body)
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        date = request.POST.get('date')
+        time = request.POST.get('time')
+        location = request.POST.get('location')
+        category = request.POST.get('category')
+        organizer = request.POST.get('organizer', user.name)
+        capacity = request.POST.get('capacity')
         
         required_fields = ['title', 'description', 'date', 'time', 'location', 'category', 'capacity']
-        if not all(field in data for field in required_fields):
+        data = {
+            'title': title,
+            'description': description,
+            'date': date,
+            'time': time,
+            'location': location,
+            'category': category,
+            'capacity': capacity,
+        }
+        if not all(field in data and data[field] for field in required_fields):
             return JsonResponse({'error': 'Missing required fields'}, status=400)
         
         event = Event.objects.create(
@@ -147,7 +163,7 @@ def create_event(request):
             time=data['time'],
             location=data['location'],
             category=data['category'],
-            organizer=data.get('organizer', user.name),
+            organizer=organizer,
             capacity=data['capacity'],
             status='pending'  # Events need admin approval
         )
@@ -175,7 +191,23 @@ def edit_event(request, event_id):
             return JsonResponse({'error': 'Only staff and admins can edit events'}, status=403)
         
         event = Event.objects.get(id=event_id)
-        data = json.loads(request.body)
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        date = request.POST.get('date')
+        time = request.POST.get('time')
+        location = request.POST.get('location')
+        category = request.POST.get('category')
+        capacity = request.POST.get('capacity')
+
+        data = {
+            'title': title,
+            'description': description,
+            'date': date,
+            'time': time,
+            'location': location,
+            'category': category,
+            'capacity': capacity
+        }
         
         # Update only provided fields
         if 'title' in data:
@@ -408,7 +440,7 @@ def get_event_attendees(request, event_id):
 # ===== ORIGINAL TEMPLATE VIEWS =====
 
 def events(request):
-    events = Event.objects.all().values()
+    events = Event.objects.filter(status='approved').values()
     template = loader.get_template('events.html')
     context = {
         'events': events,
@@ -431,3 +463,56 @@ def login(request):
 def signup(request):
     template = loader.get_template('signup.html')
     return HttpResponse(template.render({}, request))
+
+def create(request):
+    user = User.objects.get(id=request.session.get('user_id'))
+    if user.role not in ['staff', 'admin']:
+        return HttpResponse("Unauthorized", status=403)
+    template = loader.get_template('create.html')
+    return HttpResponse(template.render({}, request))
+
+def edit(request, id):
+    event = Event.objects.get(id=id)
+    user = User.objects.get(id=request.session.get('user_id'))
+    if user.role not in ['staff', 'admin']:
+        return HttpResponse("Unauthorized", status=403)
+    template = loader.get_template('edit.html')
+    context = {
+        'event': event,
+    }
+    return HttpResponse(template.render(context, request))
+
+def pending(request):
+    user = User.objects.get(id=request.session.get('user_id'))
+    if user.role != 'admin':
+        return HttpResponse("Unauthorized", status=403)
+    events = Event.objects.filter(status='pending').values()
+    template = loader.get_template('events.html')
+    context = {
+        'events': events,
+    }
+    return HttpResponse(template.render(context, request))
+
+def registered(request):
+    user = User.objects.get(id=request.session.get('user_id'))
+    registrations = Registration.objects.filter(user=user).select_related('event')
+    events = [reg.event for reg in registrations]
+    template = loader.get_template('events.html')
+    context = {
+        'events': events,
+    }
+    return HttpResponse(template.render(context, request))
+
+def attendees(request, id):
+    user = User.objects.get(id=request.session.get('user_id'))
+    event = Event.objects.get(id=id)
+    if user.role != 'admin':
+        return HttpResponse("Unauthorized", status=403)
+    registrations = Registration.objects.filter(event=event).select_related('user')
+    attendees = [reg.user for reg in registrations]
+    template = loader.get_template('attendees.html')
+    context = {
+        'attendees': attendees,
+        'event': event,
+    }
+    return HttpResponse(template.render(context, request))
